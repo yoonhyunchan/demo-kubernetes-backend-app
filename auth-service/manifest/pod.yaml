@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  namespace: aws-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+      - name: auth
+        image: 286387522454.dkr.ecr.ap-northeast-2.amazonaws.com/demoproject/auth-service:TAG 
+        ports:
+        - containerPort: 8000
+        env:
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: JWT_SECRET_KEY
+        - name: ALLOWED_ORIGINS
+          value: "https://www.yooniquespace.cloud"

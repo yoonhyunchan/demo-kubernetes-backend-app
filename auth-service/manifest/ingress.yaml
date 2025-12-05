@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: yoon-kubernetes-alb
+  namespace: aws-test
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing # 외부 공개용 (내부용은 internal)
+    alb.ingress.kubernetes.io/target-type: ip         # 파드 IP로 직접 전달 (성능 우수)
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:286387522454:certificate/d36f79a7-afe8-4142-92ab-1d10de7aeb72
+    alb.ingress.kubernetes.io/group.name: yoon-alb
+    alb.ingress.kubernetes.io/group.order: '90'
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+
+    external-dns.alpha.kubernetes.io/hostname: www.yooniquespace.cloud
+spec:
+  ingressClassName: alb  # [중요] 인그레스 클래스 지정
+  rules:
+    - host: www.yooniquespace.cloud  
+      http:
+        paths:
+          - path: /api/auth/*
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service  # 위에서 만든 서비스 이름 연결
+                port:
+                  number: 8000
+
+

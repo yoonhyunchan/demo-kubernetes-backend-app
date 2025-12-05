@@ -1,0 +1,61 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 's3-service/**'
+      - '.github/workflows/deploy-s3.yml'
+
+env:
+  REPOSITORY_NAME : "demoproject/s3-service"
+  AWS_REGION : "ap-northeast-2"
+
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+jobs:
+  Build-and-Deploy-Backend-S3:
+    runs-on: ubuntu-latest
+    steps:
+    
+      - name: Git clone the repository
+        uses: actions/checkout@v5
+        
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.1
+        with:
+          role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+          role-session-name: githubsession
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        
+      - name: Build, tag, and push docker image to Amazon ECR
+        id: build-image
+        working-directory: ./s3-service
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $REGISTRY/${{ env.REPOSITORY_NAME }}:$IMAGE_TAG .
+          docker push $REGISTRY/${{ env.REPOSITORY_NAME }}:$IMAGE_TAG
+          echo "image=$REGISTRY/$REPOSITORY_NAME:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      # - name: Fill in the new image ID in the Amazon ECS task definition
+      #   id: task-def
+      #   uses: aws-actions/amazon-ecs-render-task-definition@v1
+      #   with:
+      #     task-definition: s3-service/task-definition.json
+      #     container-name: s3
+      #     image: ${{ steps.build-image.outputs.image }}
+  
+      # - name: Deploy Amazon ECS task definition
+      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+      #   with:
+      #     task-definition: ${{ steps.task-def.outputs.task-definition }}
+      #     service: yoon-backend-s3-task-service
+      #     cluster: yhc-demoproject-ecs
+      #     wait-for-service-stability: true
