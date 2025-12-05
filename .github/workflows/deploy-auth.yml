@@ -44,6 +44,14 @@ jobs:
           docker push $REGISTRY/${{ env.REPOSITORY_NAME }}:$IMAGE_TAG
           echo "image=$REGISTRY/$REPOSITORY_NAME:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+      - name: Update Kubernetes manifest
+        working-directory: ./auth-service
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          sed -i "s|image:.*|image: $REGISTRY/${{ env.REPOSITORY_NAME }}:$IMAGE_TAG|g" manifest/1_pod.yaml
+
       # - name: Fill in the new image ID in the Amazon ECS task definition
       #   id: task-def
       #   uses: aws-actions/amazon-ecs-render-task-definition@v1
