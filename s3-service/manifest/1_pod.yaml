@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3
+  namespace: aws-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: s3
+  template:
+    metadata:
+      labels:
+        app: s3
+    spec:
+      serviceAccountName: s3-service-account
+      automountServiceAccountToken: true
+      containers:
+      - name: s3
+        image: 286387522454.dkr.ecr.ap-northeast-2.amazonaws.com/demoproject/s3-service:72c9519bc7dd65a25c70824db20e59b76ad814f6
+        ports:
+        - containerPort: 8000
+        env:
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: my-secret
+              key: JWT_SECRET_KEY
+        - name: ALLOWED_ORIGINS
+          value: "https://www.yooniquespace.cloud"

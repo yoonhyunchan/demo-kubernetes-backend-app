@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: s3-ingress
+  namespace: aws-test
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:286387522454:certificate/d36f79a7-afe8-4142-92ab-1d10de7aeb72
+    alb.ingress.kubernetes.io/group.name: yoon-alb
+    alb.ingress.kubernetes.io/group.order: '90'
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+spec:
+  ingressClassName: alb  # [중요] 인그레스 클래스 지정
+  rules:
+    - host: www.yooniquespace.cloud  
+      http:
+        paths:
+          - path: /api/s3
+            pathType: Prefix
+            backend:
+              service:
+                name: s3-service
+                port:
+                  number: 8000
+
+
