@@ -15,14 +15,14 @@ spec:
     spec:
       containers:
       - name: auth
-        image: 286387522454.dkr.ecr.ap-northeast-2.amazonaws.com/demoproject/auth-service:TAG 
+        image: 286387522454.dkr.ecr.ap-northeast-2.amazonaws.com/demoproject/auth-service:16d60d0d8b8c464eb7742abbfe7e917cd4a9def0
         ports:
         - containerPort: 8000
         env:
         - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
-              name: app-secret
+              name: my-secret
               key: JWT_SECRET_KEY
         - name: ALLOWED_ORIGINS
           value: "https://www.yooniquespace.cloud"
